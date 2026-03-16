@@ -1,0 +1,53 @@
+services:
+  singularity-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: singularity-mcp-server:2.1.1
+
+    # ── Ports ─────────────────────────────────────────────────────────────────
+    # <host_port>:<container_port>  — change the left side to avoid conflicts
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+
+    # ── Credentials & API ─────────────────────────────────────────────────────
+    environment:
+      # REQUIRED: Singularity API access token.
+      # Pass at runtime:  REFRESH_TOKEN=<token> docker compose up
+      # or create a .env file next to this file with REFRESH_TOKEN=<token>
+      REFRESH_TOKEN: ${REFRESH_TOKEN}
+
+      # Optional: override if using a self-hosted Singularity instance
+      SINGULARITY_API_URL: ${SINGULARITY_API_URL:-https://api.singularity-app.com}
+
+      # HTTP port inside the container (must match the right side of ports: above)
+      PORT: "3000"
+
+      # Log level: debug | info | warn | error
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Allowed CORS origins (comma-separated)
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+
+      # Set to "true" to run without a real token (API calls are mocked)
+      DEMO_MODE: ${DEMO_MODE:-false}
+
+    # ── Health check ──────────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # ── Lifecycle ─────────────────────────────────────────────────────────────
+    restart: unless-stopped
+
+    # ── Resource limits (adjust to your needs) ────────────────────────────────
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          memory: 64M
