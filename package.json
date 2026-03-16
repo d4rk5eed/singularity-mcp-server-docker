@@ -1,0 +1,25 @@
+{
+  "name": "singularity-mcp-server",
+  "version": "2.1.1",
+  "description": "MCP server for Singularity API",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test __tests__/*.test.js",
+    "http-server": "node http-server.js",
+    "mcp": "node mcp.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.13.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  },
+  "keywords": ["mcp", "singularity", "api", "http"],
+  "author": "",
+  "license": "MIT"
+}

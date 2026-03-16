@@ -35,7 +35,7 @@ Docker-упаковка для [Singularity MCP Server](https://singularity-app.
 
 ```bash
 # 1. Клонировать репозиторий
-git clone <repo-url>
+git clone https://github.com/d4rk5eed/singularity-mcp-server-docker.git
 cd singularity-mcp-server-docker
 
 # 2. Создать файл с переменными среды
@@ -52,7 +52,7 @@ curl http://localhost:3000/health
 
 ## Сборка образа
 
-Сборка использует **multi-stage build**: на первом этапе скачивается и распаковывается `.mcpb`-пакет сервера, на втором — собирается минимальный runtime-образ.
+Используется **multi-stage build**: на первом этапе скачивается и распаковывается `.mcpb`-пакет сервера, на втором — собирается минимальный runtime-образ.
 
 ```bash
 docker build -t singularity-mcp-server:2.1.1 .
@@ -248,7 +248,7 @@ Health check проверяет `/health` каждые **30 секунд** (`sta
 
 ```
 /app/
-├── mcp.js              # Точка входа (stdio-режим)
+├── mcp.js              # Точка входа (stdio-режим, для MCP-клиентов)
 ├── http-server.js      # Точка входа (HTTP-режим, используется контейнером)
 ├── server.js           # Ядро MCP-сервера
 ├── client.js           # HTTP-клиент к Singularity API

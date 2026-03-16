@@ -1,0 +1,45 @@
+{
+    "manifest_version": "0.3",
+    "name": "singularity-mcp-server",
+    "version": "2.1.1",
+    "description": "Model Context Protocol Server for Singularity API",
+    "author": {
+        "name": "singularity"
+    },
+    "homepage": "https://singularity-app.com",
+    "icon": "logo.png",
+    "server": {
+        "type": "node",
+        "entry_point": "mcp.js",
+        "mcp_config": {
+            "command": "node",
+            "args": [
+                "${__dirname}/mcp.js",
+                "--baseUrl",
+                "${user_config.baseUrl}",
+                "--accessToken",
+                "${user_config.accessToken}",
+                "-n"
+            ],
+            "env": {}
+        }
+    },
+    "user_config": {
+        "baseUrl": {
+            "type": "string",
+            "title": "URL API Singularity",
+            "description": "URL API Singularity",
+            "default": "https://api.singularity-app.com",
+            "required": true,
+            "sensitive": false
+        },
+        "accessToken": {
+            "type": "string",
+            "title": "Токен API",
+            "description": "Токен API",
+            "required": true,
+            "sensitive": true
+        }
+    },
+    "license": "MIT"
+}

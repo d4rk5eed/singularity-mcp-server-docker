@@ -1,49 +1,57 @@
-# ─── Build stage ──────────────────────────────────────────────────────────────
-FROM node:20-alpine AS base
-
-# Install tools needed to download and unpack the .mcpb bundle (plain ZIP)
-RUN apk add --no-cache curl unzip
-
-WORKDIR /app
-
-# Download and extract the MCP server bundle
-RUN curl -fsSL \
-      https://me.singularity-app.com/download/singularity-mcp-server-2.1.1.mcpb \
-      -o /tmp/server.mcpb \
-    && unzip /tmp/server.mcpb -d /app \
-    && rm /tmp/server.mcpb
-
 # ─── Runtime stage ────────────────────────────────────────────────────────────
+# Сборка из локальной файловой системы — без скачивания .mcpb из сети.
+# Зависимости устанавливаются через npm ci для надёжности.
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy extracted application files from the build stage
-COPY --from=base /app /app
+# Копируем package.json для установки зависимостей
+# package-lock.json опционален — если есть, npm ci использует его
+COPY package.json ./
+COPY package-lock.json* ./
+
+# Устанавливаем только production зависимости
+RUN npm install --omit=dev --ignore-scripts
+
+# Копируем предсобранные JS-файлы приложения
+COPY client.js \
+     http-server.js \
+     index.js \
+     mcp.js \
+     server.js \
+     types.js \
+     manifest.json \
+     logo.png \
+     ./
+
+# Копируем модули и утилиты
+COPY modules/ ./modules/
+COPY utils/   ./utils/
 
 # ── Environment variables ─────────────────────────────────────────────────────
-# Singularity API base URL (override for self-hosted instances)
+# Базовый URL Singularity API (переопределяется для self-hosted)
 ENV SINGULARITY_API_URL="https://api.singularity-app.com"
 
-# Access token – MUST be provided at container runtime:
+# Токен доступа — ОБЯЗАТЕЛЕН при запуске контейнера:
 #   docker run -e REFRESH_TOKEN=<your-token> ...
 ENV REFRESH_TOKEN=""
 
-# HTTP port the Express server will listen on
+# Порт HTTP-сервера
 ENV PORT="3000"
 
-# Log level: debug | info | warn | error
+# Уровень логирования: debug | info | warn | error
 ENV LOG_LEVEL="info"
 
-# Allowed CORS origins (comma-separated)
+# Разрешённые CORS-источники (через запятую)
 ENV CORS_ORIGINS="http://localhost:3000"
 
-# Demo mode – set to "true" to run without a real token (API calls are mocked)
+# Демо-режим — "true" для запуска без токена (вызовы API имитируются)
 ENV DEMO_MODE="false"
 
+# Таймаут ожидания ответа MCP SDK в миллисекундах
+ENV MCP_TIMEOUT_MS="30000"
+
 # ── Entrypoint script ─────────────────────────────────────────────────────────
-# Written via RUN printf so the script is baked into the image without requiring
-# BuildKit heredoc support (works with both legacy and BuildKit builders).
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -e' \
@@ -59,7 +67,6 @@ RUN printf '%s\n' \
     > /app/docker-entrypoint.sh \
     && chmod +x /app/docker-entrypoint.sh
 
-# Expose the HTTP port (matches the PORT env var default)
 EXPOSE 3000
 
 STOPSIGNAL SIGTERM

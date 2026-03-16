@@ -4,6 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
     image: singularity-mcp-server:2.1.1
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 
     # ── Ports ─────────────────────────────────────────────────────────────────
     # <host_port>:<container_port>  — change the left side to avoid conflicts
